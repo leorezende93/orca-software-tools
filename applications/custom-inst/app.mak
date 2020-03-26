@@ -9,9 +9,13 @@ INC_DIRS += -I$(APP_CUSTOM_INST_INC)
  
 CFLAGS += 
 
+ASMFLAGS += -march=rv32im -mabi=ilp32
+
 # Update these lines with your source code
 APP_CUSTOM_INST_SRCS := $(wildcard $(APP_CUSTOM_INST_SRC)/*.c)
+#APP_CUSTOM_INST_SRCS += $(wildcard $(APP_CUSTOM_INST_SRC)/*.s)
 APP_CUSTOM_INST_OBJS :=  $(APP_CUSTOM_INST_SRCS:.c=.o)
+APP_CUSTOM_INST_OBJS +=  $(APP_CUSTOM_INST_SRCS:.s=.o)
 
 $(APP_CUSTOM_INST_LIB) : $(APP_CUSTOM_INST_OBJS)
 	$(Q)$(AR) rcs $(APP_CUSTOM_INST_LIB) $(APP_CUSTOM_INST_OBJS) 

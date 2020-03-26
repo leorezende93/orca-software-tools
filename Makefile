@@ -80,6 +80,9 @@ $(OS_STATIC_LIBS):
 .c.o:
 	$(Q)$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
+.s.o:
+	$(Q)$(AS) -c $(ASMFLAGS) -o $@ $<
+
 ext: ext_banner $(EXT_STATIC_LIBS)
 
 ext_banner:

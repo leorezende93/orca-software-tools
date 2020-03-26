@@ -12,16 +12,16 @@
 #endif
 #define EXTRACT(a, size, offset) (((~(~0 << size) << offset) & a) >> offset)
 
-// rd = rs2[offset + size - 1 : offset]
-// rs1 is clobbered
-// rs2 is left intact
-#define EXTRACT_RAW(rd, rs1, rs2, size, offset) \
-  not x ## rs1, x0;                             \
-  slli x ## rs1, x ## rs1, size;                \
-  not x ## rs1, x ## rs1;                       \
-  slli x ## rs1, x ## rs1, offset;              \
-  and x ## rd, x ## rs1, x ## rs2;              \
-  srai x ## rd, x ## rd, offset;
+// // rd = rs2[offset + size - 1 : offset]
+// // rs1 is clobbered
+// // rs2 is left intact
+// #define EXTRACT_RAW(rd, rs1, rs2, size, offset) \
+//   not x ## rs1, x0;                             \
+//   slli x ## rs1, x ## rs1, size;                \
+//   not x ## rs1, x ## rs1;                       \
+//   slli x ## rs1, x ## rs1, offset;              \
+//   and x ## rd, x ## rs1, x ## rs2;              \
+//   srai x ## rd, x ## rd, offset;
 
 #define XCUSTOM_OPCODE(x) XCUSTOM_OPCODE_ ## x
 #define XCUSTOM_OPCODE_0 0b0001011
@@ -49,9 +49,9 @@
 // rd_n, rs_1, and rs2_n are the register numbers to use
 #define ROCC_INSTRUCTION_R_R_R(x, rd, rs1, rs2, funct, rd_n, rs1_n, rs2_n) \
   {                                                                     \
-    register uint64_t rd_  asm ("x" # rd_n);                            \
-    register uint64_t rs1_ asm ("x" # rs1_n) = (uint64_t) rs1;          \
-    register uint64_t rs2_ asm ("x" # rs2_n) = (uint64_t) rs2;          \
+    register uint32_t rd_  asm ("x" # rd_n);                            \
+    register uint32_t rs1_ asm ("x" # rs1_n) = (uint32_t) rs1;          \
+    register uint32_t rs2_ asm ("x" # rs2_n) = (uint32_t) rs2;          \
     asm volatile (                                                      \
         ".word " STR(XCUSTOM(x, rd_n, rs1_n, rs2_n, funct)) "\n\t"      \
         : "=r" (rd_)                                                    \
@@ -61,12 +61,17 @@
 
 #define ROCC_INSTRUCTION_0_R_R(x, rs1, rs2, funct, rs1_n, rs2_n)  \
   {                                                               \
-    register uint64_t rs1_ asm ("x" # rs1_n) = (uint64_t) rs1;    \
-    register uint64_t rs2_ asm ("x" # rs2_n) = (uint64_t) rs2;    \
+    register uint32_t rs1_ asm ("x" # rs1_n) = (uint32_t) rs1;    \
+    register uint32_t rs2_ asm ("x" # rs2_n) = (uint32_t) rs2;    \
     asm volatile (                                                \
         ".word " STR(XCUSTOM(x, 0, rs1_n, rs2_n, funct)) "\n\t"   \
         :: [_rs1] "r" (rs1_), [_rs2] "r" (rs2_));                 \
   }
+
+// Standard macro that passes rd_, rs1_, and rs2_ via registers
+#define EXT_MULT_INST(rd, rs1, rs2)                 \
+  ROCC_INSTRUCTION_R_R_R(0, rd, rs1, rs2, 7, 5, 6, 7)
+
 
 // [TODO] fix these to align with the above approach
 // Macro to pass rs2_ as an immediate

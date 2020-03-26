@@ -18,12 +18,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
  
 #include "custom-inst.h"
+#include "xcustom.h"
 #include "orca-hardware-counters.h"
 
 /*
 //alternativa pa implementar instrucoes customX
 //https://github.com/riscv/riscv-gnu-toolchain/issues/190#issuecomment-264083212
 https://github.com/chenxuhao/rocc_fib/blob/master/tests/xcustom.h
+https://github.com/cliffordwolf/picorv32/blob/master/firmware/custom_ops.S  <====
 // which is a more fancy way to todo this 
 // Should not be inlined, because we expect arguments
 // in particular registers.
@@ -33,8 +35,98 @@ int mac_asm(int a, int b, int c) {
     return a;
 }
 taken from https://quasilyte.dev/blog/post/riscv32-custom-instruction-and-its-simulation/
+
+ver tese como incluir um coprocessador AES
+Design and programming of a coprocessor for a RISC-V architecture
+by Davide Pala
+
 */
 
+extern ext_mult_inst(_rd, _rs1, _rs2);
+
+void custom_inst(void){ 
+	uint32_t a=1,b=2,c;
+	/*
+    register uint64_t rd_  asm ("x" # rd_n);                            \
+    register uint64_t rs1_ asm ("x" # rs1_n) = (uint64_t) rs1;          \
+    register uint64_t rs2_ asm ("x" # rs2_n) = (uint64_t) rs2;   
+
+	// executes the custom instruction: ext_mult_inst rd  rs1 rs2
+	// performs c = a*b
+	asm volatile
+	(
+		"ext_mult_inst   %[z], %[x], %[y]\n"
+		: [z] "=r" (c)
+		: [x] "r" (a), [y] "r" (b)
+	) ;
+	*/
+	//asm volatile (".word 0x02C5856B\n");
+	//ext_mult_inst("x10", "x11", "x12");
+	EXT_MULT_INST(a,b,c);
+	
+	printf("RESULT: %d x %d = %d\n\n",a,b,c);
+	if ( c == 2 ){
+		printf("\n[[PASSED]]\n");  
+	}else{
+		printf("\n[[FAILED]]\n");
+	}	
+
+	printf("MEM0: writes=%u, reads=%u\n", *M0_COUNTER_STORE, *M0_COUNTER_LOAD);
+	printf("MEM1: writes=%u, reads=%u\n", *M1_COUNTER_STORE, *M1_COUNTER_LOAD);
+	printf("MEM2: writes=%u, reads=%u\n", *M2_COUNTER_STORE, *M2_COUNTER_LOAD);
+	printf("---\n");
+
+	printf("CPU: arith=%u, logical=%u\n",   *CPU_COUNTER_ARITH, *CPU_COUNTER_LOGICAL);
+	printf("CPU: shift=%u, branches=%u\n",  *CPU_COUNTER_SHIFT, *CPU_COUNTER_BRANCHES);
+	printf("CPU: jumps=%u, loadstore=%u\n", *CPU_COUNTER_JUMPS, *CPU_COUNTER_LOADSTORE);
+	printf("CPU: cycles=%u, stalls=%u\n", *CPU_COUNTER_CYCLES_TOTAL, *CPU_COUNTER_CYCLES_STALL);	
+	printf("CPU: hosttime=%u\n", *CPU_COUNTER_HOSTTIME);
+	printf("---\n");
+
+	hf_kill(hf_selfid());
+}
+
+
+
+/*
+void custom_inst(void){
+	uint32_t a=1,b=2,c;
+
+	// executes the custom instruction: ext_mult_inst rd  rs1 rs2
+	// performs c = a*b
+	asm volatile
+	(
+		"ext_mult_inst   %[z], %[x], %[y]\n"
+		: [z] "=r" (c)
+		: [x] "r" (a), [y] "r" (b)
+	) ;
+	
+
+	if ( c == 2 ){
+		printf("\n[[PASSED]]\n");  
+	}else{
+		printf("\n[[FAILED]]\n");
+	}	
+
+	printf("MEM0: writes=%u, reads=%u\n", *M0_COUNTER_STORE, *M0_COUNTER_LOAD);
+	printf("MEM1: writes=%u, reads=%u\n", *M1_COUNTER_STORE, *M1_COUNTER_LOAD);
+	printf("MEM2: writes=%u, reads=%u\n", *M2_COUNTER_STORE, *M2_COUNTER_LOAD);
+	printf("---\n");
+
+	printf("CPU: arith=%u, logical=%u\n",   *CPU_COUNTER_ARITH, *CPU_COUNTER_LOGICAL);
+	printf("CPU: shift=%u, branches=%u\n",  *CPU_COUNTER_SHIFT, *CPU_COUNTER_BRANCHES);
+	printf("CPU: jumps=%u, loadstore=%u\n", *CPU_COUNTER_JUMPS, *CPU_COUNTER_LOADSTORE);
+	printf("CPU: cycles=%u, stalls=%u\n", *CPU_COUNTER_CYCLES_TOTAL, *CPU_COUNTER_CYCLES_STALL);	
+	printf("CPU: hosttime=%u\n", *CPU_COUNTER_HOSTTIME);
+	printf("---\n");
+
+	hf_kill(hf_selfid());
+}
+*/
+
+
+
+/*
 //example taken from 
 //https://github.com/tangyibin/goblin-core/blob/master/riscv/gc64-sim/riscv/dummy-rocc-test.c
 void custom_inst(void){
@@ -85,6 +177,9 @@ void custom_inst(void){
 
 	hf_kill(hf_selfid());
 }
+*/
+
+
 
 /*
 void custom_inst(void){
