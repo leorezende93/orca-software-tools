@@ -29,11 +29,13 @@
 #define XCUSTOM_OPCODE_2 0b1011011
 #define XCUSTOM_OPCODE_3 0b1111011
 
+// encode a Rtype instruction. funct3 is fixed to b011. it could be used in the future
+// the orignal code had an additional line for funct3 to set the bit 14
+//   ((rd != 0) & 1        << (7+5+2))   |    
 #define XCUSTOM(x, rd, rs1, rs2, funct)         \
   XCUSTOM_OPCODE(x)                   |         \
   (rd                   << (7))       |         \
   (0x3                  << (7+5))     |         \
-  ((rd != 0) & 1        << (7+5+2))   |         \
   (rs1                  << (7+5+3))   |         \
   (rs2                  << (7+5+3+5)) |         \
   (EXTRACT(funct, 7, 0) << (7+5+3+5+5))
@@ -68,10 +70,16 @@
         :: [_rs1] "r" (rs1_), [_rs2] "r" (rs2_));                 \
   }
 
-// Standard macro that passes rd_, rs1_, and rs2_ via registers
+// CUSTOM 'INSTRUCTION'
+// int multiplication, funct7 = 0. Uses registers x5, x6, and x7
 #define EXT_MULT_INST(rd, rs1, rs2)                 \
-  ROCC_INSTRUCTION_R_R_R(0, rd, rs1, rs2, 7, 5, 6, 7)
+  ROCC_INSTRUCTION_R_R_R(0, rd, rs1, rs2, 0, 5, 6, 7)
 
+// CUSTOM 'INSTRUCTION'
+// float multiplication, funct7 = 1. Uses registers x5, x6, and x7
+// TODO: this instruction does not work !!!
+#define EXT_FMULT_INST(rd, rs1, rs2)                 \
+  ROCC_INSTRUCTION_R_R_R(0, rd, rs1, rs2, 1, 5, 6, 7)
 
 // [TODO] fix these to align with the above approach
 // Macro to pass rs2_ as an immediate

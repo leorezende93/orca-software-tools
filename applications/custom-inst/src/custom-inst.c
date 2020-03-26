@@ -42,34 +42,61 @@ by Davide Pala
 
 */
 
-extern ext_mult_inst(_rd, _rs1, _rs2);
-
 void custom_inst(void){ 
 	uint32_t a=1,b=2,c;
-	/*
-    register uint64_t rd_  asm ("x" # rd_n);                            \
-    register uint64_t rs1_ asm ("x" # rs1_n) = (uint64_t) rs1;          \
-    register uint64_t rs2_ asm ("x" # rs2_n) = (uint64_t) rs2;   
+	float af=1,bf=2,cf;
+	char as[20], bs[20], cs[20];
 
-	// executes the custom instruction: ext_mult_inst rd  rs1 rs2
-	// performs c = a*b
-	asm volatile
-	(
-		"ext_mult_inst   %[z], %[x], %[y]\n"
-		: [z] "=r" (c)
-		: [x] "r" (a), [y] "r" (b)
-	) ;
-	*/
-	//asm volatile (".word 0x02C5856B\n");
-	//ext_mult_inst("x10", "x11", "x12");
-	EXT_MULT_INST(a,b,c);
+	// EXT_MULT_INST(rd, rs1, rs2)
+	// executes c = a * b
+	EXT_MULT_INST(c,a,b);
 	
-	printf("RESULT: %d x %d = %d\n\n",a,b,c);
+	printf("\n\nTesting int multiplication: %d x %d = %d\n",a,b,c);
 	if ( c == 2 ){
-		printf("\n[[PASSED]]\n");  
+		printf("[[PASSED]]\n");  
 	}else{
-		printf("\n[[FAILED]]\n");
+		printf("[[FAILED]]\n");
 	}	
+
+	a = -1;
+	// EXT_MULT_INST(rd, rs1, rs2)
+	// executes c = a * b
+	EXT_MULT_INST(c,a,b);
+	
+	printf("\nTesting int multiplication: %d x %d = %d\n",a,b,c);
+	if ( c == -2 ){
+		printf("[[PASSED]]\n");  
+	}else{
+		printf("[[FAILED]]\n");
+	}
+
+	EXT_MULT_INST(cf,af,bf);
+
+	ftoa(af,as,4);
+	ftoa(bf,bs,4);
+	ftoa(cf,cs,4);
+	printf("\nTesting float multiplication: %s x %s = %s\n",as,bs,cs);
+	if ( (cf < 2.00001) && (cf > 1.9999) ){
+		printf("[[PASSED]]\n");  
+	}else{
+		printf("[[FAILED]]\n");
+	}	
+
+	//
+	// THIS TEST FAILS. FMULT DOES WORK WHEN NUMBER OS NEGATIVE !!!
+	//
+	bf = -2.0;
+	EXT_MULT_INST(cf,af,bf);
+
+	ftoa(af,as,4);
+	ftoa(bf,bs,4);
+	ftoa(cf,cs,4);
+	printf("\nTesting float multiplication: %s x %s = %s\n",as,bs,cs);
+	if ( (cf < -2.00001) && (cf > -1.9999) ){
+		printf("[[PASSED]]\n\n");  
+	}else{
+		printf("[[FAILED]]\n\n");
+	}
 
 	printf("MEM0: writes=%u, reads=%u\n", *M0_COUNTER_STORE, *M0_COUNTER_LOAD);
 	printf("MEM1: writes=%u, reads=%u\n", *M1_COUNTER_STORE, *M1_COUNTER_LOAD);
