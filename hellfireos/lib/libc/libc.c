@@ -1037,7 +1037,9 @@ int32_t __nesf2(float a, float b){
 }
 
 /* multiply two floats */
-float __mulsf3(float a1, float a2){
+float
+__attribute__ ((noreturn,weak))
+ __mulsf3(float a1, float a2){
 	union float_long fl1, fl2;
 	uint32_t result;
 	int32_t exp;

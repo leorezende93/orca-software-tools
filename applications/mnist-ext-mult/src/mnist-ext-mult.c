@@ -37,6 +37,7 @@ union Data {
    float f;
 } ; 
 
+/*
 float mult( float op1,  float op2){
 	union Data res;
 	union Data o1; // aux input float
@@ -50,7 +51,28 @@ float mult( float op1,  float op2){
 	res.i = *MULT_RESULT;
 	return res.f;
 }
+*/
 
+// in order to replace __mulsf3 defined in HFOS's libc, 
+// we have to change HFOS's __mulsf3 like this
+//float
+//__attribute__ ((noreturn,weak))
+// __mulsf3(float a1, float a2);
+// this will make that function 'weak', and this new function can replace it
+
+float __mulsf3(float a1, float a2){
+	union Data res;
+	union Data o1; // aux input float
+	union Data o2; // aux weight float 
+
+	o1.f = a1;
+	o2.f = a2;
+
+	*MULT_OP1 = o1.i;
+	*MULT_OP2 = o2.i;
+	res.i = *MULT_RESULT;
+	return res.f;
+}
 
 // Layer = 784 i cells * 2 * 4 bytes * 10 o cells = +- 62Kbytes
 // image_vector  = 784 i cells  * 10 o cells * 4 bytes = +- 31Kbytes
@@ -96,8 +118,8 @@ void setCellOutput (Layer * l) {
 		l->cell[i].output = 0;
 		for (j = 0; j < NUMBER_OF_INPUT_CELLS; j++) {
 			// UNCOMMENT THE NEXT 4 LINES TO USE THE INTERNAL MULTIPLIER
-			//l->cell[i].output = l->cell[i].output + (l->cell[i].input[j] * l->cell[i].weight[j]);
-			l->cell[i].output = l->cell[i].output + mult(l->cell[i].input[j] , l->cell[i].weight[j]);
+			l->cell[i].output = l->cell[i].output + (l->cell[i].input[j] * l->cell[i].weight[j]);
+			//l->cell[i].output = l->cell[i].output + mult(l->cell[i].input[j] , l->cell[i].weight[j]);
 		}
 		l->cell[i].output = l->cell[i].output / (float)NUMBER_OF_INPUT_CELLS;
 	}	
