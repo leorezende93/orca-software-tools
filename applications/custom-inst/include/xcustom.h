@@ -60,7 +60,19 @@
         : [_rs1] "r" (rs1_), [_rs2] "r" (rs2_));                        \
     rd = rd_;                                                           \
   }
-
+/*
+#define ROCC_FINSTRUCTION_R_R_R(x, rd, rs1, rs2, funct, rd_n, rs1_n, rs2_n) \
+  {                                                                     \
+    register float rd_  asm ("fa" # rd_n);                            \
+    register float rs1_ asm ("fa" # rs1_n) = (float) rs1;          \
+    register float rs2_ asm ("fa" # rs2_n) = (float) rs2;          \
+    asm volatile (                                                      \
+        ".word " STR(XCUSTOM(x, rd_n, rs1_n, rs2_n, funct)) "\n\t"      \
+        : "=f" (rd_)                                                    \
+        : [_rs1] "f" (rs1_), [_rs2] "f" (rs2_));                        \
+    rd = rd_;                                                           \
+  }
+*/
 #define ROCC_INSTRUCTION_0_R_R(x, rs1, rs2, funct, rs1_n, rs2_n)  \
   {                                                               \
     register uint32_t rs1_ asm ("x" # rs1_n) = (uint32_t) rs1;    \

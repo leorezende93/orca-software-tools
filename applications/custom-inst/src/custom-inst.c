@@ -45,6 +45,7 @@ by Davide Pala
 void custom_inst(void){ 
 	uint32_t a=1,b=2,c;
 	float af=1,bf=2,cf;
+	register float counter asm("f1");
 	char as[20], bs[20], cs[20];
 
 	// EXT_MULT_INST(rd, rs1, rs2)
@@ -70,7 +71,7 @@ void custom_inst(void){
 		printf("[[FAILED]]\n");
 	}
 
-	EXT_MULT_INST(cf,af,bf);
+	EXT_FMULT_INST(cf,af,bf);
 
 	ftoa(af,as,4);
 	ftoa(bf,bs,4);
@@ -86,7 +87,7 @@ void custom_inst(void){
 	// THIS TEST FAILS. FMULT DOES WORK WHEN NUMBER OS NEGATIVE !!!
 	//
 	bf = -2.0;
-	EXT_MULT_INST(cf,af,bf);
+	EXT_FMULT_INST(cf,af,bf);
 
 	ftoa(af,as,4);
 	ftoa(bf,bs,4);
