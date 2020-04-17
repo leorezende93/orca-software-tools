@@ -60,7 +60,7 @@ void SetDMA(uint32_t burst_size, uint32_t nn_size, uint32_t out_size, float *out
 	volatile float    * mac_out_ptr = DMA_MAC_OUT_ARRAY;
 	volatile uint8_t  * start = SIGNAL_DMA_PROG;
 	//uint32_t start_cycles,stall_cycles;
-	//char str[40];
+	char str[40];
 	int i;
 	float res;
 
@@ -80,8 +80,8 @@ void SetDMA(uint32_t burst_size, uint32_t nn_size, uint32_t out_size, float *out
 	for (i = 0; i < out_size; i++)
 	{
 		res = *mac_out_ptr;
-		//ftoa(res,str,6);
-		//printf("%d: [0x%x] = 0x%x %s\n", i, mac_out_ptr, (uint32_t)res, str);
+		ftoa(res,str,6);
+		printf("%d: [0x%x] = 0x%x %s\n", i, mac_out_ptr, (uint32_t)res, str);
 		*output = res;
 		mac_out_ptr += nn_size;
 		output++;

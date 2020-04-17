@@ -29,8 +29,7 @@
 //#include "../../../applications/mnist-ext-vet-mult/include/mnist-ext-vet-mult.h"
 //#include "../../../applications/mnist-ext-vet-seq-mult/include/mnist-ext-vet-seq-mult.h"
 //#include "../../../applications/mnist-ext-mult-dma/include/mnist-ext-mult-dma.h"
-//#include "../../../applications/mnist-two-layers/include/mnist-two-layers.h"
-#include "../../../applications/mnist-two-layers-dma/include/mnist-two-layers-dma.h"
+#include "../../../applications/mnist-two-layers/include/mnist-two-layers.h"
 //#include "../../../applications/simple-dma/include/simple-dma.h"
 
 //#include "../../../applications/cpp-mult/include/cpp-mult.h"
@@ -60,8 +59,7 @@ void app_main(void)
 	//hf_spawn(mnist_ext_vet_mult, 5, 4, 5, "mnist_ext_vet_mult", 128 * 1024);   // 128 Kbytes !!
 	//hf_spawn(mnist_ext_vet_seq_mult, 5, 4, 5, "mnist_ext_vet_seq_mult", 256 * 1024); // 256 Kbytes !!
 	//hf_spawn(mnist_ext_mult_dma, 5, 4, 5, "mnist_ext_mult_dma", 256 * 1024); // 256 Kbytes !!
-	//hf_spawn(mnist_two_layers, 5, 4, 5, "mnist_two_layers", 128 * 1024); // 128 Kbytes !!
-	hf_spawn(mnist_two_layers_dma, 5, 4, 5, "mnist_two_layers_dma", 256 * 1024); // 256 Kbytes !!
+	hf_spawn(mnist_two_layers, 5, 4, 5, "mnist_two_layers", 128 * 1024); // 128 Kbytes !!
 	//hf_spawn(simple_dma, 5, 4, 5, "simple_dma", 1024);
 	//hf_spawn(int_mult, 5, 4, 5, "int_mult", 1024);   //10%
 	//hf_spawn(float_mult, 5, 4, 5, "float_mult", 1024);   //10%
