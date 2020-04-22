@@ -3,6 +3,7 @@
 #define NUMBER_OF_HIDDEN_CELLS 8  
 #define NUMBER_OF_OUTPUT_CELLS 10  
 #define NUMBER_OF_TEST_IMAGES 10 
+#define NUMBER_OF_RUNS 10
 
 #include "mnist-two-layers.h"
 #include "orca-hardware-counters.h"
@@ -150,7 +151,7 @@ void mnist_two_layers () {
                        
 	int bias_vector_output_layer[NUMBER_OF_OUTPUT_CELLS] = {-60, 574, 24, -393, 147, 1107, -435, 134, -948, 109};
 
-	int i,j,idx;
+	int i,j,idx=0;
 	
 	float aux;
 
@@ -167,15 +168,22 @@ void mnist_two_layers () {
 	}
 	
 	// Reading input images
-	for (i = 0; i < NUMBER_OF_TEST_IMAGES; i++) {
+	for (i = 0; i < NUMBER_OF_RUNS; i++) {
 		
 		// Setting hidden layer
 		setInputLayer(&mnist_hidden_layer, image_vector[i]);
 		setHiddenCellOutput(&mnist_hidden_layer);
-		
+		for (j = 0; j < NUMBER_OF_HIDDEN_CELLS; j++) {
+			printf("%d ",mnist_hidden_layer.cell[j].output);
+		}
+		printf("\n");
 		// Setting output layer
 		setOutputLayer(&mnist_output_layer, &mnist_hidden_layer);
 		setOutputCellOutput(&mnist_output_layer);
+		for (j = 0; j < NUMBER_OF_OUTPUT_CELLS; j++) {
+			printf("%d ",mnist_output_layer.cell[j].output);
+		}
+		printf("\n");
 		
 		aux = 0.0;
 		for (j = 0; j < NUMBER_OF_OUTPUT_CELLS; j++) {

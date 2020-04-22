@@ -2,11 +2,13 @@
 #define NUMBER_OF_INPUT_CELLS 784
 #define NUMBER_OF_HIDDEN_CELLS 8  
 #define NUMBER_OF_OUTPUT_CELLS 10  
-#define NUMBER_OF_TEST_IMAGES 10 
+#define NUMBER_OF_TEST_IMAGES 10
+#define NUMBER_OF_RUNS 10
 
 // MMIO for the DMA-based SIMD MACs
 #define SIGNAL_CPU_STALL    (volatile uint8_t*)0x40412000  // 8 bits
 #define SIGNAL_DMA_PROG     (volatile uint8_t*)0x40412002
+#define DMA_INITIAL_ADDR    (volatile uint32_t*)0x40410003
 
 #define DMA_BURST_SIZE	  (volatile uint32_t*)0x40412004  // 32 bits 
 #define DMA_NN_SIZE  	  (volatile uint32_t*)0x40412008
@@ -88,12 +90,14 @@ void setCellWeight (Cell * c, int weight[], int size) {
 	}
 }
 
-void SetDMA(uint32_t burst_size, uint32_t nn_size, uint32_t out_size, int *output){
+void SetDMA(uint32_t burst_size, uint32_t nn_size, uint32_t out_size, int bias[], uint32_t initial_addr_shift, int *output){
 	volatile uint32_t * burst_size_ptr = DMA_BURST_SIZE;
 	volatile uint32_t * nn_size_ptr = DMA_NN_SIZE;
 	volatile uint32_t * out_size_ptr = DMA_OUT_SIZE;
 	volatile int    * mac_out_ptr = DMA_MAC_OUT_ARRAY;
 	volatile uint8_t  * start = SIGNAL_DMA_PROG;
+	volatile uint32_t  * shift = DMA_INITIAL_ADDR;
+
 
 	int i;
 	int res;
@@ -102,6 +106,7 @@ void SetDMA(uint32_t burst_size, uint32_t nn_size, uint32_t out_size, int *outpu
 	*burst_size_ptr = burst_size;
 	*nn_size_ptr = nn_size;
 	*out_size_ptr = out_size;
+	*shift = initial_addr_shift;
 
 	*start = 1;
 	// Then the processor goes into stall to perform the DMA ...
@@ -111,7 +116,7 @@ void SetDMA(uint32_t burst_size, uint32_t nn_size, uint32_t out_size, int *outpu
 	for (i = 0; i < out_size; i++)
 	{
 		res = *mac_out_ptr;
-		*output = res;
+		*output = (res + bias[i]);
 		mac_out_ptr += nn_size;
 		output++;
 	}
@@ -160,13 +165,12 @@ void mnist_two_layers_dma () {
 	int bias_vector_hidden_layer[NUMBER_OF_HIDDEN_CELLS] = {4703, -8306, 4555, -3454, -6472, -3653, 1737, 16395};
 	int bias_vector_output_layer[NUMBER_OF_OUTPUT_CELLS] = {-60, 574, 24, -393, 147, 1107, -435, 134, -948, 109};
 	
-	int i,j,idx;
+	int i,j,idx=0,hidden_layer_number=0;
 		
 	// Stores the results calculated by the MACs
-	int hidden_layer_output[NUMBER_OF_HIDDEN_CELLS];
 	int hidden_layer_buffer[NUMBER_OF_TEST_IMAGES][NUMBER_OF_HIDDEN_CELLS];
 	int output_layer_output[NUMBER_OF_OUTPUT_CELLS];
-	
+		
 	float aux;
 	
 	printf("NN CONFIGURATION:\n\n");
@@ -202,12 +206,13 @@ void mnist_two_layers_dma () {
 		setInputLayer(&mnist_hidden_layer, image_vector[i]);
 	
 		// Runs the MACs. At the end of this function, the output vector will have the results of all cells
-		SetDMA(NUMBER_OF_INPUT_CELLS, SIMD_SIZE/NUM_CHANNELS, NUMBER_OF_HIDDEN_CELLS, hidden_layer_output);
-					
+		SetDMA(NUMBER_OF_INPUT_CELLS, SIMD_SIZE/NUM_CHANNELS, NUMBER_OF_HIDDEN_CELLS,bias_vector_hidden_layer,0,hidden_layer_buffer[hidden_layer_number]);
+		
+		hidden_layer_number++;		
 		// Adding hidden layer bias
-		for (j = 0; j < NUMBER_OF_HIDDEN_CELLS; j++) {
-			hidden_layer_buffer[i][j] = hidden_layer_output[j] + bias_vector_hidden_layer[j];
-		}
+		//for (j = 0; j < NUMBER_OF_HIDDEN_CELLS; j++) {
+		//	hidden_layer_buffer[i][j] = hidden_layer_output[j];
+		//}
 	}
 
 	// Seting NN memory addresses for output layer
@@ -227,18 +232,18 @@ void mnist_two_layers_dma () {
 	}
 	
 	// Executing inference
-	printf("starting output inference using DMA ...\n");
-	for (i = 0; i < NUMBER_OF_TEST_IMAGES; i++) {		
+	printf("starting inference using DMA ...\n");
+	for (i = 0; i < NUMBER_OF_RUNS; i++) {		
 		//Reading output layer output
 		setOutputLayer(&mnist_output_layer, hidden_layer_buffer[i]);
 		
 		// Runs the MACs. At the end of this function, the output vector will have the results of all cells
-		SetDMA(NUMBER_OF_INPUT_CELLS, SIMD_SIZE/NUM_CHANNELS, NUMBER_OF_OUTPUT_CELLS, output_layer_output);
+		SetDMA(NUMBER_OF_INPUT_CELLS, SIMD_SIZE/NUM_CHANNELS, NUMBER_OF_OUTPUT_CELLS, bias_vector_output_layer, 0, output_layer_output);
 		
-		// Adding output layer bias
-		for (j = 0; j < NUMBER_OF_OUTPUT_CELLS; j++) {
-			output_layer_output[j] = output_layer_output[j] + bias_vector_output_layer[j];
-		}
+		//// Adding output layer bias
+		//for (j = 0; j < NUMBER_OF_OUTPUT_CELLS; j++) {
+		//	output_layer_output[j] = output_layer_output[j] + bias_vector_output_layer[j];
+		//}
 
 		aux = 0.0;
 		idx = 0;
